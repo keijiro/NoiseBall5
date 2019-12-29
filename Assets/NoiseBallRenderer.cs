@@ -10,6 +10,7 @@ public sealed class NoiseBallRenderer : MonoBehaviour
     [SerializeField] float _extent = 0.5f;
     [SerializeField] float _noiseFrequency = 2.0f;
     [SerializeField] float _noiseAmplitude = 0.1f;
+    [SerializeField] float3 _noiseSpeed = math.float3(0.1f, 0.2f, 0.3f);
     [SerializeField] uint _randomSeed = 123;
 
     [SerializeField] Material _material = null;
@@ -25,8 +26,6 @@ public sealed class NoiseBallRenderer : MonoBehaviour
 
     void Start()
     {
-        _random = new Random(_randomSeed);
-
         InitializeVertexArray();
         InitializeIndexArray();
 
@@ -44,6 +43,12 @@ public sealed class NoiseBallRenderer : MonoBehaviour
         if (_indexArray.IsCreated) _indexArray.Dispose();
         if (_vertexArray.IsCreated) _vertexArray.Dispose();
         if (_mesh != null) Destroy(_mesh);
+    }
+
+    void Update()
+    {
+        UpdateVertexArray();
+        UpdateMesh();
     }
 
     void BuildMesh()
@@ -72,6 +77,13 @@ public sealed class NoiseBallRenderer : MonoBehaviour
         );
     }
 
+    void UpdateMesh()
+    {
+        var vcount = (int)_triangleCount * 3;
+        _mesh.SetVertexBufferData(_vertexArray, 0, 0, vcount);
+        _mesh.SetIndexBufferData(_indexArray, 0, 0, vcount);
+    }
+
     float3 RandomPoint()
     {
         var u = _random.NextFloat(math.PI * 2);
@@ -89,7 +101,16 @@ public sealed class NoiseBallRenderer : MonoBehaviour
             NativeArrayOptions.UninitializedMemory
         );
 
-        var noffs = math.float3(1, 2, 3);
+        UpdateVertexArray();
+    }
+
+    void UpdateVertexArray()
+    {
+        _random = new Random(_randomSeed);
+
+        var vcount = (int)_triangleCount * 3;
+
+        var noffs = _noiseSpeed * Time.time;
 
         for (var i = 0; i < vcount * 2; i += 6)
         {
