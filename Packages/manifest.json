@@ -9,6 +9,7 @@
     }
   ],
   "dependencies": {
+    "com.unity.burst": "1.1.2",
     "com.unity.mathematics": "1.1.0",
     "com.unity.render-pipelines.high-definition": "7.1.7",
     "jp.keijiro.test-assets": "1.0.1"

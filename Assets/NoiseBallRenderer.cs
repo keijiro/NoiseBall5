@@ -1,35 +1,43 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using Unity.Collections;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Random = Unity.Mathematics.Random;
 
 public sealed class NoiseBallRenderer : MonoBehaviour
 {
-    [SerializeField] uint _triangleCount = 100;
-    [SerializeField] float _extent = 0.5f;
-    [SerializeField] float _noiseFrequency = 2.0f;
-    [SerializeField] float _noiseAmplitude = 0.1f;
-    [SerializeField] float3 _noiseSpeed = math.float3(0.1f, 0.2f, 0.3f);
-    [SerializeField] uint _randomSeed = 123;
+    #region Editable attributes
 
+    [SerializeField, Range(0, 60000)] uint _triangleCount = 100;
+    [SerializeField, Range(0, 2)] float _extent = 0.5f;
+    [SerializeField, Range(0, 20)] float _noiseFrequency = 2.0f;
+    [SerializeField, Range(0, 5)] float _noiseAmplitude = 0.1f;
+    [SerializeField] float3 _noiseAnimation = math.float3(0.1f, 0.2f, 0.3f);
+    [SerializeField] uint _randomSeed = 100;
     [SerializeField] Material _material = null;
 
-    Mesh _mesh;
+    #endregion
+
+    #region Local objects
+
     MeshFilter _meshFilter;
     MeshRenderer _meshRenderer;
 
-    NativeArray<uint> _indexArray;
-    NativeArray<float3> _vertexArray;
+    Mesh _mesh;
+    NativeArray<uint> _indexBuffer;
+    NativeArray<float3> _vertexBuffer;
 
-    Random _random;
+    #endregion
+
+    #region MonoBehaviour implementation
 
     void Start()
     {
-        InitializeVertexArray();
-        InitializeIndexArray();
-
-        BuildMesh();
+        InitializeIndexBuffer();
+        AllocateVertexBuffer();
+        UpdateVertexBuffer();
+        InitializeMesh();
 
         _meshFilter = gameObject.AddComponent<MeshFilter>();
         _meshFilter.sharedMesh = _mesh;
@@ -40,119 +48,156 @@ public sealed class NoiseBallRenderer : MonoBehaviour
 
     void OnDestroy()
     {
-        if (_indexArray.IsCreated) _indexArray.Dispose();
-        if (_vertexArray.IsCreated) _vertexArray.Dispose();
         if (_mesh != null) Destroy(_mesh);
+        if (_indexBuffer.IsCreated) _indexBuffer.Dispose();
+        if (_vertexBuffer.IsCreated) _vertexBuffer.Dispose();
     }
 
     void Update()
     {
-        UpdateVertexArray();
+        UpdateVertexBuffer();
         UpdateMesh();
     }
 
-    void BuildMesh()
-    {
-        var vcount = (int)_triangleCount * 3;
+    #endregion
 
+    #region Private properties
+
+    int VertexCount { get { return (int)_triangleCount * 3; } }
+
+    #endregion
+
+    #region Mesh object operations
+
+    void InitializeMesh()
+    {
         _mesh = new Mesh();
 
         _mesh.SetVertexBufferParams(
-            vcount,
+            VertexCount,
             new VertexAttributeDescriptor
                 (VertexAttribute.Position, VertexAttributeFormat.Float32, 3),
             new VertexAttributeDescriptor
                 (VertexAttribute.Normal, VertexAttributeFormat.Float32, 3)
         );
+        _mesh.SetVertexBufferData(_vertexBuffer, 0, 0, VertexCount);
 
-        _mesh.SetVertexBufferData(_vertexArray, 0, 0, vcount);
-
-        _mesh.SetIndexBufferParams(vcount, IndexFormat.UInt32);
-        _mesh.SetIndexBufferData(_indexArray, 0, 0, vcount);
+        _mesh.SetIndexBufferParams(VertexCount, IndexFormat.UInt32);
+        _mesh.SetIndexBufferData(_indexBuffer, 0, 0, VertexCount);
 
         _mesh.SetSubMesh(
             0,
-            new SubMeshDescriptor(0, vcount)
+            new SubMeshDescriptor(0, VertexCount)
                 { bounds = new Bounds(Vector3.zero, Vector3.one * 1000) }
         );
     }
 
     void UpdateMesh()
     {
-        var vcount = (int)_triangleCount * 3;
-        _mesh.SetVertexBufferData(_vertexArray, 0, 0, vcount);
-        _mesh.SetIndexBufferData(_indexArray, 0, 0, vcount);
+        _mesh.SetVertexBufferData(_vertexBuffer, 0, 0, (int)_triangleCount * 3);
     }
 
-    float3 RandomPoint()
-    {
-        var u = _random.NextFloat(math.PI * 2);
-        var z = _random.NextFloat(-1, 1);
-        var xy = math.sqrt(1 - z * z);
-        return math.float3(math.cos(u) * xy, math.sin(u) * xy, z);
-    }
+    #endregion
 
-    void InitializeVertexArray()
-    {
-        var vcount = (int)_triangleCount * 3;
+    #region Index buffer operations
 
-        _vertexArray = new NativeArray<float3>(
-            vcount * 2, Allocator.Persistent,
+    void InitializeIndexBuffer()
+    {
+        _indexBuffer = new NativeArray<uint>(
+            VertexCount, Allocator.Persistent,
             NativeArrayOptions.UninitializedMemory
         );
 
-        UpdateVertexArray();
+        for (var i = 0; i < VertexCount; i++) _indexBuffer[i] = (uint)i;
     }
 
-    void UpdateVertexArray()
+    #endregion
+
+    #region Vertex buffer operations
+
+    void AllocateVertexBuffer()
     {
-        _random = new Random(_randomSeed);
+        _vertexBuffer = new NativeArray<float3>(
+            VertexCount * 2, Allocator.Persistent,
+            NativeArrayOptions.UninitializedMemory
+        );
+    }
 
-        var vcount = (int)_triangleCount * 3;
+    void UpdateVertexBuffer()
+    {
+        var job = new VertexUpdateJob{
+            seed = _randomSeed,
+            extent = _extent,
+            noiseFrequency = _noiseFrequency,
+            noiseOffset = _noiseAnimation * Time.time,
+            noiseAmplitude = _noiseAmplitude,
+            buffer = _vertexBuffer
+        };
 
-        var noffs = _noiseSpeed * Time.time;
+        job.Schedule((int)_triangleCount, 64).Complete();
+    }
 
-        for (var i = 0; i < vcount * 2; i += 6)
+    #endregion
+
+    #region Jobified vertex animation
+
+    [Unity.Burst.BurstCompile(CompileSynchronously = true)]
+    struct VertexUpdateJob : IJobParallelFor
+    {
+        [ReadOnly] public uint seed;
+        [ReadOnly] public float extent;
+        [ReadOnly] public float noiseFrequency;
+        [ReadOnly] public float3 noiseOffset;
+        [ReadOnly] public float noiseAmplitude;
+
+        [NativeDisableParallelForRestriction]
+        [WriteOnly] public NativeArray<float3> buffer;
+
+        Random _random;
+
+        float3 RandomPoint()
         {
+            var u = _random.NextFloat(math.PI * 2);
+            var z = _random.NextFloat(-1, 1);
+            var xy = math.sqrt(1 - z * z);
+            return math.float3(math.cos(u) * xy, math.sin(u) * xy, z);
+        }
+
+        public void Execute(int i)
+        {
+            _random = new Random(seed + (uint)i * 10);
+
             var v1 = RandomPoint();
             var v2 = RandomPoint();
             var v3 = RandomPoint();
 
-            v2 = math.normalize(v1 + math.normalize(v2 - v1) * _extent);
-            v3 = math.normalize(v1 + math.normalize(v3 - v1) * _extent);
+            v2 = math.normalize(v1 + math.normalize(v2 - v1) * extent);
+            v3 = math.normalize(v1 + math.normalize(v3 - v1) * extent);
 
-            var l1 = noise.snoise(v1 * _noiseFrequency + noffs);
-            var l2 = noise.snoise(v2 * _noiseFrequency + noffs);
-            var l3 = noise.snoise(v3 * _noiseFrequency + noffs);
+            var l1 = noise.snoise(v1 * noiseFrequency + noiseOffset);
+            var l2 = noise.snoise(v2 * noiseFrequency + noiseOffset);
+            var l3 = noise.snoise(v3 * noiseFrequency + noiseOffset);
 
             l1 = math.abs(l1 * l1 * l1);
             l2 = math.abs(l2 * l2 * l2);
             l3 = math.abs(l3 * l3 * l3);
 
-            v1 *= 1 + l1 * _noiseAmplitude;
-            v2 *= 1 + l2 * _noiseAmplitude;
-            v3 *= 1 + l3 * _noiseAmplitude;
+            v1 *= 1 + l1 * noiseAmplitude;
+            v2 *= 1 + l2 * noiseAmplitude;
+            v3 *= 1 + l3 * noiseAmplitude;
 
             var n = math.cross(v2 - v1, v3 - v1);
 
-            _vertexArray[i + 0] = v1;
-            _vertexArray[i + 1] = n;
-            _vertexArray[i + 2] = v2;
-            _vertexArray[i + 3] = n;
-            _vertexArray[i + 4] = v3;
-            _vertexArray[i + 5] = n;
+            var offs = i * 6;
+
+            buffer[offs++] = v1;
+            buffer[offs++] = n;
+            buffer[offs++] = v2;
+            buffer[offs++] = n;
+            buffer[offs++] = v3;
+            buffer[offs++] = n;
         }
     }
 
-    void InitializeIndexArray()
-    {
-        var vcount = (int)_triangleCount * 3;
-
-        _indexArray = new NativeArray<uint>(
-            vcount, Allocator.Persistent,
-            NativeArrayOptions.UninitializedMemory
-        );
-
-        for (var i = 0; i < vcount; i++) _indexArray[i] = (uint)i;
-    }
+    #endregion
 }

@@ -202,7 +202,11 @@ MonoBehaviour:
   _extent: 0.4
   _noiseFrequency: 2
   _noiseAmplitude: 1
-  _randomSeed: 123
+  _noiseSpeed:
+    x: 0.1
+    y: 0.2
+    z: 0.3
+  _randomSeed: 100
   _material: {fileID: 2100000, guid: fbfc2644d00ff9a48aa892ada5007f87, type: 2}
 --- !u!4 &1285866950
 Transform:
