@@ -112,7 +112,7 @@ public sealed class NoiseBallRenderer : MonoBehaviour
             v2 *= 1 + l2 * _noiseAmplitude;
             v3 *= 1 + l3 * _noiseAmplitude;
 
-            var n = math.cross(v3 - v1, v2 - v1);
+            var n = math.cross(v2 - v1, v3 - v1);
 
             _vertexArray[i + 0] = v1;
             _vertexArray[i + 1] = n;
