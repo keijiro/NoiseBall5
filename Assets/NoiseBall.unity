@@ -209,7 +209,7 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissiveColor: {r: 0, g: 11.709752, b: 63.66167, a: 63.66167}
+    - _EmissiveColor: {r: 0, g: 11.709731, b: 63.661556, a: 63.661556}
     - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _UnlitColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!1 &1028728368
@@ -401,7 +401,7 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissiveColor: {r: 63.66177, g: 0, b: 0, a: 63.66177}
+    - _EmissiveColor: {r: 63.66171, g: 0, b: 0, a: 63.66171}
     - _EmissiveColorLDR: {r: 0, g: 0, b: 0, a: 1}
     - _UnlitColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!1 &1798989193
@@ -581,7 +581,7 @@ MonoBehaviour:
   m_AffectDiffuse: 1
   m_AffectSpecular: 1
   m_NonLightmappedOnly: 0
-  m_ShapeWidth: 0.5000027
+  m_ShapeWidth: 0.5000036
   m_ShapeHeight: 3
   m_AspectRatio: 1
   m_ShapeRadius: 0.025
@@ -668,7 +668,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 0, g: 0.4660325, b: 1, a: 1}
-  m_Intensity: 63.66167
+  m_Intensity: 63.661556
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -709,7 +709,7 @@ Light:
   m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 2
-  m_AreaSize: {x: 0.5000027, y: 3}
+  m_AreaSize: {x: 0.5000036, y: 3}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
@@ -726,7 +726,7 @@ Transform:
   m_GameObject: {fileID: 1850094049}
   m_LocalRotation: {x: 0, y: 0.9063079, z: -0, w: -0.42261827}
   m_LocalPosition: {x: 3.8, y: 1.5, z: 2}
-  m_LocalScale: {x: 0.5000027, y: 3, z: 0.01}
+  m_LocalScale: {x: 0.5000036, y: 3, z: 0.01}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 5
@@ -829,7 +829,7 @@ MonoBehaviour:
   m_AffectDiffuse: 1
   m_AffectSpecular: 1
   m_NonLightmappedOnly: 0
-  m_ShapeWidth: 0.5000017
+  m_ShapeWidth: 0.50000226
   m_ShapeHeight: 3
   m_AspectRatio: 1
   m_ShapeRadius: 0.025
@@ -916,7 +916,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 0, b: 0, a: 1}
-  m_Intensity: 63.66177
+  m_Intensity: 63.66171
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -957,7 +957,7 @@ Light:
   m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 2
-  m_AreaSize: {x: 0.5000017, y: 3}
+  m_AreaSize: {x: 0.50000226, y: 3}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
@@ -974,7 +974,7 @@ Transform:
   m_GameObject: {fileID: 1929732651}
   m_LocalRotation: {x: 0, y: 0.9396927, z: 0, w: 0.34202018}
   m_LocalPosition: {x: -3, y: 1.5, z: 3}
-  m_LocalScale: {x: 0.5000017, y: 3, z: 0.01}
+  m_LocalScale: {x: 0.50000226, y: 3, z: 0.01}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 6
@@ -1002,14 +1002,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1945865329}
-  m_LocalRotation: {x: 0.3420201, y: 0, z: 0, w: 0.9396927}
+  m_LocalRotation: {x: 0.5, y: 0, z: 0, w: 0.8660254}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2044175649}
   m_Father: {fileID: 0}
   m_RootOrder: 7
-  m_LocalEulerAnglesHint: {x: 40, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 60, y: 0, z: 0}
 --- !u!1 &2044175648
 GameObject:
   m_ObjectHideFlags: 0
@@ -1062,7 +1062,7 @@ MonoBehaviour:
   m_PointlightHDType: 0
   m_SpotLightShape: 0
   m_AreaLightShape: 0
-  m_Intensity: 800
+  m_Intensity: 1000
   m_EnableSpotReflector: 0
   m_LuxAtDistance: 1
   m_InnerSpotPercent: 0
@@ -1160,7 +1160,7 @@ Light:
   m_Type: 0
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 63.661976
+  m_Intensity: 79.57747
   m_Range: 20
   m_SpotAngle: 45
   m_InnerSpotAngle: 4
