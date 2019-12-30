@@ -94,7 +94,7 @@ public sealed class NoiseBallRenderer : MonoBehaviour
 
     void UpdateMesh()
     {
-        _mesh.SetVertexBufferData(_vertexBuffer, 0, 0, (int)_triangleCount * 3);
+        _mesh.SetVertexBufferData(_vertexBuffer, 0, 0, VertexCount);
     }
 
     #endregion
