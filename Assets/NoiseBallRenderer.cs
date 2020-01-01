@@ -34,10 +34,7 @@ public sealed class NoiseBallRenderer : MonoBehaviour
 
     void Start()
     {
-        InitializeIndexBuffer();
-        AllocateVertexBuffer();
-        UpdateVertexBuffer();
-        InitializeMesh();
+        _mesh = new Mesh();
 
         _meshFilter = gameObject.AddComponent<MeshFilter>();
         _meshFilter.sharedMesh = _mesh;
@@ -49,21 +46,63 @@ public sealed class NoiseBallRenderer : MonoBehaviour
     void OnDestroy()
     {
         if (_mesh != null) Destroy(_mesh);
-        if (_indexBuffer.IsCreated) _indexBuffer.Dispose();
-        if (_vertexBuffer.IsCreated) _vertexBuffer.Dispose();
+        DisposeBuffers();
     }
 
     void Update()
     {
-        UpdateVertexBuffer();
-        UpdateMesh();
+        if (_indexBuffer.Length != VertexCount)
+        {
+            // The vertex count was changed, or this is the first update.
+
+            // Dispose the current mesh.
+            _mesh.Clear();
+            DisposeBuffers();
+
+            // Mesh reallocation and reconstruction
+            AllocateBuffers();
+            UpdateVertexBuffer();
+            InitializeMesh();
+        }
+        else
+        {
+            // Only update the vertex data.
+            UpdateVertexBuffer();
+            UpdateMesh();
+        }
     }
 
     #endregion
 
-    #region Private properties
+    #region Private properties and methods
 
     int VertexCount { get { return (int)_triangleCount * 3; } }
+
+    #endregion
+
+    #region Index/vertex buffer operations
+
+    void AllocateBuffers()
+    {
+        _indexBuffer = new NativeArray<uint>(
+            VertexCount, Allocator.Persistent,
+            NativeArrayOptions.UninitializedMemory
+        );
+
+        _vertexBuffer = new NativeArray<float3>(
+            VertexCount * 2, Allocator.Persistent,
+            NativeArrayOptions.UninitializedMemory
+        );
+
+        // Index array initialization
+        for (var i = 0; i < VertexCount; i++) _indexBuffer[i] = (uint)i;
+    }
+
+    void DisposeBuffers()
+    {
+        if (_indexBuffer.IsCreated) _indexBuffer.Dispose();
+        if (_vertexBuffer.IsCreated) _vertexBuffer.Dispose();
+    }
 
     #endregion
 
@@ -71,8 +110,6 @@ public sealed class NoiseBallRenderer : MonoBehaviour
 
     void InitializeMesh()
     {
-        _mesh = new Mesh();
-
         _mesh.SetVertexBufferParams(
             VertexCount,
             new VertexAttributeDescriptor
@@ -99,29 +136,7 @@ public sealed class NoiseBallRenderer : MonoBehaviour
 
     #endregion
 
-    #region Index buffer operations
-
-    void InitializeIndexBuffer()
-    {
-        _indexBuffer = new NativeArray<uint>(
-            VertexCount, Allocator.Persistent,
-            NativeArrayOptions.UninitializedMemory
-        );
-
-        for (var i = 0; i < VertexCount; i++) _indexBuffer[i] = (uint)i;
-    }
-
-    #endregion
-
-    #region Vertex buffer operations
-
-    void AllocateVertexBuffer()
-    {
-        _vertexBuffer = new NativeArray<float3>(
-            VertexCount * 2, Allocator.Persistent,
-            NativeArrayOptions.UninitializedMemory
-        );
-    }
+    #region Jobified vertex animation
 
     void UpdateVertexBuffer()
     {
@@ -136,10 +151,6 @@ public sealed class NoiseBallRenderer : MonoBehaviour
 
         job.Schedule((int)_triangleCount, 64).Complete();
     }
-
-    #endregion
-
-    #region Jobified vertex animation
 
     [Unity.Burst.BurstCompile(CompileSynchronously = true)]
     struct VertexUpdateJob : IJobParallelFor
@@ -166,6 +177,7 @@ public sealed class NoiseBallRenderer : MonoBehaviour
         public void Execute(int i)
         {
             _random = new Random(seed + (uint)i * 10);
+            _random.NextInt();
 
             var v1 = RandomPoint();
             var v2 = RandomPoint();
