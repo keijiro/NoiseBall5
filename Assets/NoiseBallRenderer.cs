@@ -122,11 +122,8 @@ public sealed class NoiseBallRenderer : MonoBehaviour
         _mesh.SetIndexBufferParams(VertexCount, IndexFormat.UInt32);
         _mesh.SetIndexBufferData(_indexBuffer, 0, 0, VertexCount);
 
-        _mesh.SetSubMesh(
-            0,
-            new SubMeshDescriptor(0, VertexCount)
-                { bounds = new Bounds(Vector3.zero, Vector3.one * 1000) }
-        );
+        _mesh.SetSubMesh(0, new SubMeshDescriptor(0, VertexCount));
+        _mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1000);
     }
 
     void UpdateMesh()
