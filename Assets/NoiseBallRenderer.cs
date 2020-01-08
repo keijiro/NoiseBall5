@@ -117,7 +117,7 @@ public sealed class NoiseBallRenderer : MonoBehaviour
             new VertexAttributeDescriptor
                 (VertexAttribute.Normal, VertexAttributeFormat.Float32, 3)
         );
-        _mesh.SetVertexBufferData(_vertexBuffer, 0, 0, VertexCount);
+        _mesh.SetVertexBufferData(_vertexBuffer, 0, 0, VertexCount * 2);
 
         _mesh.SetIndexBufferParams(VertexCount, IndexFormat.UInt32);
         _mesh.SetIndexBufferData(_indexBuffer, 0, 0, VertexCount);
@@ -131,7 +131,7 @@ public sealed class NoiseBallRenderer : MonoBehaviour
 
     void UpdateMesh()
     {
-        _mesh.SetVertexBufferData(_vertexBuffer, 0, 0, VertexCount);
+        _mesh.SetVertexBufferData(_vertexBuffer, 0, 0, VertexCount * 2);
     }
 
     #endregion
