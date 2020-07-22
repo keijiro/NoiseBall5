@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -149,7 +150,8 @@ public sealed class NoiseBallRenderer : MonoBehaviour
         job.Schedule((int)_triangleCount, 64).Complete();
     }
 
-    [Unity.Burst.BurstCompile(CompileSynchronously = true)]
+    [BurstCompile(CompileSynchronously = true,
+        FloatMode = FloatMode.Fast, FloatPrecision = FloatPrecision.Low)]
     struct VertexUpdateJob : IJobParallelFor
     {
         [ReadOnly] public uint seed;
