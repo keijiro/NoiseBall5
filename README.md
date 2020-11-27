@@ -15,5 +15,3 @@ For details of the new Mesh API, please refer to the [Google doc].
 
 [Google doc]:
   https://docs.google.com/document/d/1I225X6jAxWN0cheDz_3gnhje3hWNMxTZq3FZQs5KqPc/edit?usp=sharing
-
-<!--4567890123456789012345678901234567890123456789012345678901234567890123456-->
